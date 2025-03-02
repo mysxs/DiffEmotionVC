@@ -1,973 +1,996 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DiffEmotionVC: A Dual-Granularity Disentangled Diffusion Framework for Any-to-Any Emotional Voice Conversion</title>
-  <style>
-    /* 基础样式 */
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f5f7fb;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiffEmotionVC: A Dual-Granularity Disentangled Diffusion Framework for Any-to-Any Emotional Voice Conversion</title>
+    <style>
+        /* 基础样式 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fb;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 论文介绍样式 */
+        .paper-intro {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .paper-intro h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .paper-intro p {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .paper-intro .abstract {
+            text-align: left;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        /* 模型图片样式 */
+        .model-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .model-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .model-image .caption {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* 表格样式 */
+        .demo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+        .demo-table th, .demo-table td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+            vertical-align: middle; /* 使按钮垂直居中 */
+        }
+        .demo-table th {
+            background-color: #f8f9ff;
+            font-weight: bold;
+        }
+
+        /* 音频样式 */
+        audio {
+            display: none; /* 隐藏音频元素，只有带 .show-audio 才显示 */
+        }
+        .show-audio {
+            display: block;
+            width: 70px;
+        }
+        .music-outer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+                   /* 1) 表格样式：统一使用 .demo-table2 */
+        .demo-table2 {
+          width: 80%;         /* 根据需要自行调节表格宽度 */
+          margin: 20px auto;  /* 居中表格，并与上下留些空白 */
+          border-collapse: collapse; /* 去掉单元格之间的缝隙 */
+        }
+        .demo-table2 th,
+        /* 表格单元格内容水平居中 */
+        .demo-table2 td {
+            text-align: center;
+            vertical-align: middle;
+        }
+    
+        /* 2) 音频样式：统一使用 .show-audio2 */
+        /* 先隐藏所有 audio，只有带 show-audio2 的才显示 */
+        audio {
+          display: none;
+        }
+        .show-audio2 {
+          display: block;
+          width: 300px;   /* 这里可自行调节大小 */
+          margin: 0 auto; /* 水平居中 */
+        }
+    
+        /* 3) 隐藏文字的类：.hidden-label2 */
+        .hidden-label2 {
+          display: none; 
+        }
+    
+        /* 4) 音频容器：.audio-container2 */
+        .audio-container2 {
+          display: flex;
+          align-items: center;
+          gap: 20px; 
+          margin: 20px 0;
+        }
+        /* 如果想每个音频自己单独一行，也可以去掉 display:flex; 或使用别的布局方式 */
+    
+        /* 让音频说明文字与播放器稍微分隔 */
+        .audio-item p {
+          margin: 5px 0;
+        }
+        /* 隐藏时间、进度条、剩余时间、音量控制、倍速等元素 */
+    audio::-webkit-media-controls-timeline,
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display,
+    audio::-webkit-media-controls-volume-slider,
+    audio::-webkit-media-controls-volume-value,
+    audio::-webkit-media-controls-mute-button,
+    audio::-webkit-media-controls-seek-back-button,
+    audio::-webkit-media-controls-seek-forward-button,
+    audio::-webkit-media-controls-playback-rate-button,
+    audio::-webkit-media-controls-fullscreen-button,
+    audio::-webkit-media-controls-overflow-button {
+        display: none !important;
+    }
+    
+    /* 如需隐藏下载按钮(有的浏览器会有三点“菜单”按钮) */
+    audio::-webkit-media-controls-panel > audio::-webkit-media-controls-overlay-play-button,
+    audio::-webkit-media-controls-overflow-menu-list,
+    audio::-webkit-media-controls-overflow-menu-list-item {
+        display: none !important;
     }
 
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    /* 论文介绍样式 */
-    .paper-intro {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .paper-intro h1 {
-      font-size: 2.5em;
-      color: #333;
-      margin-bottom: 10px;
-    }
-
-    .paper-intro p {
-      font-size: 1.2em;
-      color: #666;
-      margin-bottom: 20px;
-    }
-
-    .paper-intro .abstract {
-      text-align: left;
-      margin-top: 30px;
-      padding: 20px;
-      background: #f8f9ff;
-      border-radius: 10px;
-    }
-
-    /* 模型图片样式 */
-    .model-container {
-      text-align: center;
-      margin: 40px 0;
-    }
-    .model-image img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .model-image .caption {
-      font-size: 1.2em;
-      color: #666;
-      margin-top: 10px;
-    }
-
-    /* 表格样式 */
-    .demo-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 40px;
-    }
-    .demo-table th, .demo-table td {
-      border: 1px solid #ddd;
-      padding: 15px;
-      text-align: center;
-      vertical-align: middle; /* 使按钮垂直居中 */
-    }
-    .demo-table th {
-      background-color: #f8f9ff;
-      font-weight: bold;
-    }
-
-    /* 音频样式 */
-    audio {
-      display: none; /* 默认隐藏，只有带 .show-audio 或 .show-audio2 才显示 */
-    }
-    .show-audio {
-      display: block;
-      width: 70px;
-    }
-    .music-outer {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
-
-    /* 1) 表格样式：统一使用 .demo-table2 */
-    .demo-table2 {
-      width: 80%;         /* 根据需要自行调节表格宽度 */
-      margin: 20px auto;  /* 居中表格，并与上下留些空白 */
-      border-collapse: collapse; /* 去掉单元格之间的缝隙 */
-    }
-    .demo-table2 th,
-    .demo-table2 td {
-      text-align: center;
-      vertical-align: middle;
-    }
-
-    /* 2) 音频样式：统一使用 .show-audio2 */
-    /* 先隐藏所有 audio，只有带 show-audio2 的才显示 */
-    /* 注意上面 audio{display:none} 已经隐藏了所有音频，这里不再重复 */
-    .show-audio2 {
-      display: block;
-      width: 300px;   /* 这里可自行调节大小 */
-      margin: 0 auto; /* 水平居中 */
-    }
-
-    /* 3) 隐藏文字的类：.hidden-label2 */
-    .hidden-label2 {
-      display: none;
-    }
-
-    /* 4) 音频容器：.audio-container2 */
-    .audio-container2 {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      margin: 20px 0;
-    }
-
-    /* 让音频说明文字与播放器稍微分隔 */
-    .audio-item p {
-      margin: 5px 0;
-    }
-  </style>
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <!-- 论文介绍 -->
-    <div class="paper-intro">
-      <h1>DiffEmotionVC: A Dual-Granularity Disentangled Diffusion Framework for Any-to-Any Emotional Voice Conversion</h1>
-      <div class="abstract">
-        <h2>Abstract</h2>
-        <p>
-          Emotional Voice Conversion (EVC) plays a vital role in improving human-computer interaction but faces challenges due to the complexity of emotion features, which are entangled with speaker and content characteristics. To overcome these challenges, we propose DiffEmotionVC, a diffusion-based framework for any-to-any EVC. Our approach integrates a dual-granularity emotion encoder that captures both utterance-level emotional context and frame-level acoustic details. It also employs an orthogonality-constrained condition encoder that disentangles emotion features through gated cross-attention while preserving feature independence with an orthogonal loss. Additionally, multi-objective diffusion training enhances both reconstruction fidelity and emotion discriminability via contrastive learning. Experimental results show a UTMOS score of 4.04 and 80% emotion recognition accuracy, demonstrating the framework's effectiveness in speech quality and optimizing emotional expression.
-        </p>
-      </div>
-    </div>
-
-    <!-- 模型框架图片 -->
-    <div class="model-container">
-      <h2>DiffEmotionVC Model Architecture</h2>
-      <div class="model-image">
-        <img src="38.png" alt="DiffEmotionVC Model Architecture">
-        <div class="caption">
-          <p><strong>Figure 1:</strong> The overview of the DiffEmotionVC framework includes three feature extractors and encoders for speaker, emotion, and content. It also incorporates a condition encoder that fuses these features using a cross-attention mechanism, maintains feature independence through orthogonal constraints, and utilizes a diffusion module to generate high-quality speech, where (a) represents the speaker encoder, and (b) represents the emotion encoder.</p>
+    <div class="container">
+        <!-- 论文介绍 -->
+        <div class="paper-intro">
+            <h1>DiffEmotionVC: A Dual-Granularity Disentangled Diffusion Framework for Any-to-Any Emotional Voice Conversion</h1>
+            <div class="abstract">
+                <h2>Abstract</h2>
+                <p>
+                    Emotional Voice Conversion (EVC) plays a vital role in improving human-computer interaction but faces challenges due to the complexity of emotion features, which are entangled with speaker and content characteristics. To overcome these challenges, we propose DiffEmotionVC, a diffusion-based framework for any-to-any EVC. Our approach integrates a dual-granularity emotion encoder that captures both utterance-level emotional context and frame-level acoustic details. It also employs an orthogonality-constrained condition encoder that disentangles emotion features through gated cross-attention while preserving feature independence with an orthogonal loss. Additionally, multi-objective diffusion training enhances both reconstruction fidelity and emotion discriminability via contrastive learning. Experimental results show a UTMOS score of 4.04 and 80% emotion recognition accuracy, demonstrating the framework's effectiveness in speech quality and optimizing emotional expression.
+                </p>
+            </div>
         </div>
-      </div>
+
+        <!-- 模型框架图片 -->
+        <div class="model-container">
+            <h2>DiffEmotionVC Model Architecture</h2>
+            <div class="model-image">
+                <img src="38.png" alt="DiffEmotionVC Model Architecture">
+                <div class="caption">
+                    <p><strong>Figure 1:</strong> The overview of the DiffEmotionVC framework includes three feature extractors and encoders for speaker, emotion, and content. It also incorporates a condition encoder that fuses these features using a cross-attention mechanism, maintains feature independence through orthogonal constraints, and utilizes a diffusion module to generate high-quality speech, where (a) represents the speaker encoder, and (b) represents the emotion encoder.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 实验结果 -->
+        <h2>Experimental Results on Emotional Voice Conversion</h2>
+
+        <!-- ================== Neutral to Angry ================== -->
+        <h3>Neutral to Angry</h3>
+        <table class="demo-table">
+            <tr>
+                <th>Neutral</th>
+                <th>CycleGAN-EVC</th>
+                <th>StarGAN-EVC</th>
+                <th>Seq2Seq-EVC</th>
+                <th>Emovox</th>
+                <th>Prosody2Vec</th>
+                <th>Any-to-Any-EVC</th>
+                <th>Ours</th>
+                <th>Target</th>
+                <th>Reference</th>
+            </tr>
+            <!-- Row 1 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        a1
+                        <audio class="show-audio" controls src="./Source_n2a_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        a2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2a_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        a3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2a_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        a4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2a_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        a5
+                        <audio class="show-audio" controls src="./Emovox_n2a_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        a6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2a_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        a7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2a_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        a8
+                        <audio class="show-audio" controls src="./Ours_n2a_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        a9
+                        <audio class="show-audio" controls src="./0013_000362.wav"></audio>
+                    </div>
+                </td>
+                <!-- Reference with rowspan="3" -->
+                <td rowspan="3">
+                    <div class="music-outer">
+                        a10
+                        <audio class="show-audio" controls src="./0013_000643.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+            <!-- Row 2 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        b1
+                        <audio class="show-audio" controls src="./Source_n2a_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        b2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2a_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        b3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2a_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        b4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2a_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        b5
+                        <audio class="show-audio" controls src="./Emovox_n2a_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        b6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2a_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        b7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2a_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        b8
+                        <audio class="show-audio" controls src="./Ours_n2a_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        b9
+                        <audio class="show-audio" controls src="./0013_000367.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+            <!-- Row 3 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        c1
+                        <audio class="show-audio" controls src="./Source_n2a_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        c2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2a_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        c3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2a_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        c4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2a_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        c5
+                        <audio class="show-audio" controls src="./Emovox_n2a_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        c6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2a_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        c7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2a_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        c8
+                        <audio class="show-audio" controls src="./Ours_n2a_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        c9
+                        <audio class="show-audio" controls src="./0013_000370.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- ================== Neutral to Happy ================== -->
+        <h3>Neutral to Happy</h3>
+        <table class="demo-table">
+            <tr>
+                <th>Neutral</th>
+                <th>CycleGAN-EVC</th>
+                <th>StarGAN-EVC</th>
+                <th>Seq2Seq-EVC</th>
+                <th>Emovox</th>
+                <th>Prosody2Vec</th>
+                <th>Any-to-Any-EVC</th>
+                <th>Ours</th>
+                <th>Target</th>
+                <th>Reference</th>
+            </tr>
+            <!-- Row 1 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        d1
+                        <audio class="show-audio" controls src="./Source_n2h_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        d2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2h_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        d3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2h_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        d4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2h_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        d5
+                        <audio class="show-audio" controls src="./Emovox_n2h_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        d6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2h_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        d7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2h_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        d8
+                        <audio class="show-audio" controls src="./Ours_n2h_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        d9
+                        <audio class="show-audio" controls src="./0013_000702.wav"></audio>
+                    </div>
+                </td>
+                <!-- Reference with rowspan="3" -->
+                <td rowspan="3">
+                    <div class="music-outer">
+                        d10
+                        <audio class="show-audio" controls src="./0013_001048.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+            <!-- Row 2 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        e1
+                        <audio class="show-audio" controls src="./Source_n2h_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        e2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2h_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        e3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2h_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        e4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2h_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        e5
+                        <audio class="show-audio" controls src="./Emovox_n2h_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        e6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2h_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        e7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2h_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        e8
+                        <audio class="show-audio" controls src="./Ours_n2h_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        e9
+                        <audio class="show-audio" controls src="./0013_000703.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+            <!-- Row 3 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        f1
+                        <audio class="show-audio" controls src="./Source_n2h_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        f2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2h_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        f3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2h_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        f4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2h_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        f5
+                        <audio class="show-audio" controls src="./Emovox_n2h_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        f6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2h_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        f7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2h_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        f8
+                        <audio class="show-audio" controls src="./Ours_n2h_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        f9
+                        <audio class="show-audio" controls src="./0013_000704.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- ================== Neutral to Sad ================== -->
+        <h3>Neutral to Sad</h3>
+        <table class="demo-table">
+            <tr>
+                <th>Neutral</th>
+                <th>CycleGAN-EVC</th>
+                <th>StarGAN-EVC</th>
+                <th>Seq2Seq-EVC</th>
+                <th>Emovox</th>
+                <th>Prosody2Vec</th>
+                <th>Any-to-Any-EVC</th>
+                <th>Ours</th>
+                <th>Target</th>
+                <th>Reference</th>
+            </tr>
+            <!-- Row 1 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        g1
+                        <audio class="show-audio" controls src="./Source_n2s_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        g2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2s_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        g3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2s_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        g4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2s_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        g5
+                        <audio class="show-audio" controls src="./Emovox_n2s_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        g6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2s_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        g7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2s_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        g8
+                        <audio class="show-audio" controls src="./Ours_n2s_1.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        g9
+                        <audio class="show-audio" controls src="./0013_001063.wav"></audio>
+                    </div>
+                </td>
+                <!-- Reference with rowspan="3" -->
+                <td rowspan="3">
+                    <div class="music-outer">
+                        g10
+                        <audio class="show-audio" controls src="./0013_001106.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+            <!-- Row 2 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        h1
+                        <audio class="show-audio" controls src="./Source_n2s_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        h2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2s_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        h3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2s_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        h4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2s_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        h5
+                        <audio class="show-audio" controls src="./Emovox_n2s_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        h6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2s_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        h7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2s_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        h8
+                        <audio class="show-audio" controls src="./Ours_n2s_2.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        h9
+                        <audio class="show-audio" controls src="./0013_001066.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+            <!-- Row 3 -->
+            <tr>
+                <td>
+                    <div class="music-outer">
+                        i1
+                        <audio class="show-audio" controls src="./Source_n2s_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        i2
+                        <audio class="show-audio" controls src="./CycleGAN_EVC_n2s_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        i3
+                        <audio class="show-audio" controls src="./StarGAN_EVC_n2s_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        i4
+                        <audio class="show-audio" controls src="./Seq2Seq_EVC_n2s_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        i5
+                        <audio class="show-audio" controls src="./Emovox_n2s_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        i6
+                        <audio class="show-audio" controls src="./Prosody2Vec_n2s_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        i7
+                        <audio class="show-audio" controls src="./Any-to-Any-EVC_n2s_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        i8
+                        <audio class="show-audio" controls src="./Ours_n2s_3.wav"></audio>
+                    </div>
+                </td>
+                <td>
+                    <div class="music-outer">
+                        i9
+                        <audio class="show-audio" controls src="./0013_001068.wav"></audio>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+      <!-- ============ 第一部分: The Impact of Different Content Extraction Methods on Emotion Features ============ -->
+  <h2>The Impact of Different Content Extraction Methods on Emotion Features</h2>
+
+  <!-- 上面音频区域 -->
+  <div class="audio-container2">
+    <div class="audio-item">
+      <p>Source Audio1 (Angry)</p>
+      <audio class="show-audio2" controls src="./source_audio_1.wav"></audio>
     </div>
-
-    <!-- 实验结果 -->
-    <h2>Experimental Results on Emotional Voice Conversion</h2>
-
-    <!-- ================== Neutral to Angry ================== -->
-    <h3>Neutral to Angry</h3>
-    <table class="demo-table">
-      <tr>
-        <th>Neutral</th>
-        <th>CycleGAN-EVC</th>
-        <th>StarGAN-EVC</th>
-        <th>Seq2Seq-EVC</th>
-        <th>Emovox</th>
-        <th>Prosody2Vec</th>
-        <th>Any-to-Any-EVC</th>
-        <th>Ours</th>
-        <th>Target</th>
-        <th>Reference</th>
-      </tr>
-      <!-- Row 1 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            a1
-            <!-- 去掉 controls -->
-            <audio class="show-audio" src="./Source_n2a_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            a2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2a_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            a3
-            <audio class="show-audio" src="./StarGAN_EVC_n2a_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            a4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2a_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            a5
-            <audio class="show-audio" src="./Emovox_n2a_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            a6
-            <audio class="show-audio" src="./Prosody2Vec_n2a_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            a7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2a_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            a8
-            <audio class="show-audio" src="./Ours_n2a_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            a9
-            <audio class="show-audio" src="./0013_000362.wav"></audio>
-          </div>
-        </td>
-        <!-- Reference with rowspan="3" -->
-        <td rowspan="3">
-          <div class="music-outer">
-            a10
-            <audio class="show-audio" src="./0013_000643.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <!-- Row 2 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            b1
-            <audio class="show-audio" src="./Source_n2a_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            b2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2a_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            b3
-            <audio class="show-audio" src="./StarGAN_EVC_n2a_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            b4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2a_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            b5
-            <audio class="show-audio" src="./Emovox_n2a_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            b6
-            <audio class="show-audio" src="./Prosody2Vec_n2a_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            b7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2a_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            b8
-            <audio class="show-audio" src="./Ours_n2a_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            b9
-            <audio class="show-audio" src="./0013_000367.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <!-- Row 3 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            c1
-            <audio class="show-audio" src="./Source_n2a_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            c2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2a_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            c3
-            <audio class="show-audio" src="./StarGAN_EVC_n2a_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            c4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2a_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            c5
-            <audio class="show-audio" src="./Emovox_n2a_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            c6
-            <audio class="show-audio" src="./Prosody2Vec_n2a_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            c7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2a_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            c8
-            <audio class="show-audio" src="./Ours_n2a_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            c9
-            <audio class="show-audio" src="./0013_000370.wav"></audio>
-          </div>
-        </td>
-      </tr>
-    </table>
-
-    <!-- ================== Neutral to Happy ================== -->
-    <h3>Neutral to Happy</h3>
-    <table class="demo-table">
-      <tr>
-        <th>Neutral</th>
-        <th>CycleGAN-EVC</th>
-        <th>StarGAN-EVC</th>
-        <th>Seq2Seq-EVC</th>
-        <th>Emovox</th>
-        <th>Prosody2Vec</th>
-        <th>Any-to-Any-EVC</th>
-        <th>Ours</th>
-        <th>Target</th>
-        <th>Reference</th>
-      </tr>
-      <!-- Row 1 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            d1
-            <audio class="show-audio" src="./Source_n2h_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            d2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2h_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            d3
-            <audio class="show-audio" src="./StarGAN_EVC_n2h_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            d4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2h_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            d5
-            <audio class="show-audio" src="./Emovox_n2h_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            d6
-            <audio class="show-audio" src="./Prosody2Vec_n2h_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            d7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2h_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            d8
-            <audio class="show-audio" src="./Ours_n2h_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            d9
-            <audio class="show-audio" src="./0013_000702.wav"></audio>
-          </div>
-        </td>
-        <!-- Reference with rowspan="3" -->
-        <td rowspan="3">
-          <div class="music-outer">
-            d10
-            <audio class="show-audio" src="./0013_001048.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <!-- Row 2 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            e1
-            <audio class="show-audio" src="./Source_n2h_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            e2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2h_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            e3
-            <audio class="show-audio" src="./StarGAN_EVC_n2h_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            e4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2h_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            e5
-            <audio class="show-audio" src="./Emovox_n2h_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            e6
-            <audio class="show-audio" src="./Prosody2Vec_n2h_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            e7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2h_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            e8
-            <audio class="show-audio" src="./Ours_n2h_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            e9
-            <audio class="show-audio" src="./0013_000703.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <!-- Row 3 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            f1
-            <audio class="show-audio" src="./Source_n2h_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            f2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2h_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            f3
-            <audio class="show-audio" src="./StarGAN_EVC_n2h_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            f4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2h_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            f5
-            <audio class="show-audio" src="./Emovox_n2h_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            f6
-            <audio class="show-audio" src="./Prosody2Vec_n2h_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            f7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2h_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            f8
-            <audio class="show-audio" src="./Ours_n2h_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            f9
-            <audio class="show-audio" src="./0013_000704.wav"></audio>
-          </div>
-        </td>
-      </tr>
-    </table>
-
-    <!-- ================== Neutral to Sad ================== -->
-    <h3>Neutral to Sad</h3>
-    <table class="demo-table">
-      <tr>
-        <th>Neutral</th>
-        <th>CycleGAN-EVC</th>
-        <th>StarGAN-EVC</th>
-        <th>Seq2Seq-EVC</th>
-        <th>Emovox</th>
-        <th>Prosody2Vec</th>
-        <th>Any-to-Any-EVC</th>
-        <th>Ours</th>
-        <th>Target</th>
-        <th>Reference</th>
-      </tr>
-      <!-- Row 1 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            g1
-            <audio class="show-audio" src="./Source_n2s_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            g2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2s_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            g3
-            <audio class="show-audio" src="./StarGAN_EVC_n2s_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            g4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2s_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            g5
-            <audio class="show-audio" src="./Emovox_n2s_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            g6
-            <audio class="show-audio" src="./Prosody2Vec_n2s_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            g7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2s_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            g8
-            <audio class="show-audio" src="./Ours_n2s_1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            g9
-            <audio class="show-audio" src="./0013_001063.wav"></audio>
-          </div>
-        </td>
-        <!-- Reference with rowspan="3" -->
-        <td rowspan="3">
-          <div class="music-outer">
-            g10
-            <audio class="show-audio" src="./0013_001106.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <!-- Row 2 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            h1
-            <audio class="show-audio" src="./Source_n2s_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            h2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2s_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            h3
-            <audio class="show-audio" src="./StarGAN_EVC_n2s_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            h4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2s_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            h5
-            <audio class="show-audio" src="./Emovox_n2s_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            h6
-            <audio class="show-audio" src="./Prosody2Vec_n2s_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            h7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2s_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            h8
-            <audio class="show-audio" src="./Ours_n2s_2.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            h9
-            <audio class="show-audio" src="./0013_001066.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <!-- Row 3 -->
-      <tr>
-        <td>
-          <div class="music-outer">
-            i1
-            <audio class="show-audio" src="./Source_n2s_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            i2
-            <audio class="show-audio" src="./CycleGAN_EVC_n2s_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            i3
-            <audio class="show-audio" src="./StarGAN_EVC_n2s_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            i4
-            <audio class="show-audio" src="./Seq2Seq_EVC_n2s_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            i5
-            <audio class="show-audio" src="./Emovox_n2s_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            i6
-            <audio class="show-audio" src="./Prosody2Vec_n2s_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            i7
-            <audio class="show-audio" src="./Any-to-Any-EVC_n2s_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            i8
-            <audio class="show-audio" src="./Ours_n2s_3.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="music-outer">
-            i9
-            <audio class="show-audio" src="./0013_001068.wav"></audio>
-          </div>
-        </td>
-      </tr>
-    </table>
-
-    <!-- ============ 第一部分: The Impact of Different Content Extraction Methods on Emotion Features ============ -->
-    <h2>The Impact of Different Content Extraction Methods on Emotion Features</h2>
-
-    <!-- 上面音频区域 -->
-    <div class="audio-container2">
-      <div class="audio-item">
-        <p>Source Audio1 (Angry)</p>
-        <!-- 去掉 controls -->
-        <audio class="show-audio2" src="./source_audio_1.wav"></audio>
-      </div>
-      <div class="audio-item">
-        <p>Source Audio2 (Neutral)</p>
-        <audio class="show-audio2" src="./source_audio_2.wav"></audio>
-      </div>
-      <div class="audio-item">
-        <p>Reference Emotion: Happy</p>
-        <p>Reference Prompt:</p>
-        <audio class="show-audio2" src="./reference_audio.wav"></audio>
-      </div>
+    <div class="audio-item">
+      <p>Source Audio2 (Neutral)</p>
+      <audio class="show-audio2" controls src="./source_audio_2.wav"></audio>
     </div>
-
-    <!-- 表格 -->
-    <table class="demo-table2">
-      <tr>
-        <th>Method</th>
-        <th>Sample1</th>
-        <th>Sample2</th>
-      </tr>
-      <tr>
-        <td>Our(ContentVec)</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./contentvec_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./contentvec_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>ContentVec → Whisper</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./whisper_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./whisper_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>ContentVec → VQ-ContentVec</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./vq-contentvec_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./vq-contentvec_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>ContentVec → Speechtokenizer</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./speechtokenizer_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./speechtokenizer_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <!-- ... 可继续加行 ... -->
-    </table>
-
-    <!-- ============ 第二部分: Ablation Studies ============ -->
-    <h2>Ablation Studies</h2>
-
-    <!-- 表格 -->
-    <table class="demo-table2">
-      <tr>
-        <th>Method</th>
-        <th>Sample1</th>
-        <th>Sample2</th>
-      </tr>
-      <tr>
-        <td>Our (cross-attention)</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./cross-attention_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./cross-attention_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>w/o speaker encoder</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./wospeakerencoder_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./wospeakerencoder_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>w/o emotion encoder</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./woemotionencoder_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./woemotionencoder_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>w/o contrast loss</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./wocontrastloss_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./wocontrastloss_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>w/o ortho loss</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./woortholoss_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./woortholoss_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>cross-attention → add</td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample1</p>
-            <audio class="show-audio2" src="./cross-attention-add_sample1.wav"></audio>
-          </div>
-        </td>
-        <td>
-          <div class="audio-item">
-            <p class="hidden-label2">Sample2</p>
-            <audio class="show-audio2" src="./cross-attention-add_sample2.wav"></audio>
-          </div>
-        </td>
-      </tr>
-    </table>
+    <div class="audio-item">
+      <p>Reference Emotion: Happy</p>
+      <p>Reference Prompt:</p>
+      <audio class="show-audio2" controls src="./reference_audio.wav"></audio>
+    </div>
   </div>
 
-  <!-- 使用自定义按钮替代原生controls：自动给每个 audio 加一个“播放 / 暂停”按钮 -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const audioTags = document.querySelectorAll('audio');
-      audioTags.forEach((audio, index) => {
-        // 创建一个按钮
-        const playButton = document.createElement('button');
-        playButton.textContent = 'Play / Pause';
-        playButton.style.marginBottom = '5px';
+  <!-- 表格 -->
+  <table class="demo-table2">
+    <tr>
+      <th>Method</th>
+      <th>Sample1</th>
+      <th>Sample2</th>
+    </tr>
+    <tr>
+      <td>Our(ContentVec)</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./contentvec_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./contentvec_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>ContentVec → Whisper</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./whisper_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./whisper_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>ContentVec → VQ-ContentVec</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./vq-contentvec_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./vq-contentvec_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>ContentVec → Speechtokenizer</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./speechtokenizer_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./speechtokenizer_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <!-- ... 需要可继续加行 ... -->
+  </table>
 
-        // 播放 / 暂停事件
-        playButton.addEventListener('click', () => {
-          if (audio.paused) {
-            audio.play();
-          } else {
-            audio.pause();
-          }
-        });
 
-        // 将按钮插入到 audio 之后
-        audio.insertAdjacentElement('afterend', playButton);
-      });
-    });
-  </script>
+  <!-- ============ 第二部分: Ablation Studies ============ -->
+  <h2>Ablation Studies</h2>
 
+  <!-- 表格 -->
+  <table class="demo-table2">
+    <tr>
+      <th>Method</th>
+      <th>Sample1</th>
+      <th>Sample2</th>
+    </tr>
+    <tr>
+      <td>Our (cross-attention)</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./cross-attention_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./cross-attention_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>w/o speaker encoder</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./wospeakerencoder_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./wospeakerencoder_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>w/o emotion encoder</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./woemotionencoder_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./woemotionencoder_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>w/o contrast loss</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./wocontrastloss_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./wocontrastloss_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>w/o ortho loss</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./woortholoss_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./woortholoss_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>cross-attention → add</td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample1</p>
+          <audio class="show-audio2" controls src="./cross-attention-add_sample1.wav"></audio>
+        </div>
+      </td>
+      <td>
+        <div class="audio-item">
+          <p class="hidden-label2">Sample2</p>
+          <audio class="show-audio2" controls src="./cross-attention-add_sample2.wav"></audio>
+        </div>
+      </td>
+    </tr>
+  </table>
+        
+        
+    <script>
+        // 播放音频功能
+        function playAudio(audioId) {
+            const audioElement = document.getElementById(audioId);
+            if (audioElement) {
+                if (audioElement.paused) {
+                    audioElement.play().catch((error) => {
+                        console.error("Error playing audio:", error);
+                    });
+                } else {
+                    audioElement.pause();
+                }
+            }
+        }
+
+        // 下载音频功能（可选）
+        function downloadAudio(fileName) {
+            const audioElement = document.createElement('a');
+            audioElement.href = fileName;
+            audioElement.download = fileName;
+            document.body.appendChild(audioElement);
+            audioElement.click();
+            document.body.removeChild(audioElement);
+        }
+    </script>
 </body>
 </html>
