@@ -137,28 +137,6 @@
         .audio-item p {
           margin: 5px 0;
         }
-        /* 隐藏时间、进度条、剩余时间、音量控制、倍速等元素 */
-    audio::-webkit-media-controls-timeline,
-    audio::-webkit-media-controls-current-time-display,
-    audio::-webkit-media-controls-time-remaining-display,
-    audio::-webkit-media-controls-volume-slider,
-    audio::-webkit-media-controls-volume-value,
-    audio::-webkit-media-controls-mute-button,
-    audio::-webkit-media-controls-seek-back-button,
-    audio::-webkit-media-controls-seek-forward-button,
-    audio::-webkit-media-controls-playback-rate-button,
-    audio::-webkit-media-controls-fullscreen-button,
-    audio::-webkit-media-controls-overflow-button {
-        display: none !important;
-    }
-    
-    /* 如需隐藏下载按钮(有的浏览器会有三点“菜单”按钮) */
-    audio::-webkit-media-controls-panel > audio::-webkit-media-controls-overlay-play-button,
-    audio::-webkit-media-controls-overflow-menu-list,
-    audio::-webkit-media-controls-overflow-menu-list-item {
-        display: none !important;
-    }
-
     </style>
 </head>
 <body>
