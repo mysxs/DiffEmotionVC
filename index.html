@@ -945,30 +945,38 @@
   </table>
         
         
-    <script>
-        // 播放音频功能
-        function playAudio(audioId) {
-            const audioElement = document.getElementById(audioId);
-            if (audioElement) {
-                if (audioElement.paused) {
-                    audioElement.play().catch((error) => {
-                        console.error("Error playing audio:", error);
-                    });
-                } else {
-                    audioElement.pause();
-                }
+<script>
+    // 播放音频功能
+    function playAudio(audioId) {
+        const audioElement = document.getElementById(audioId);
+        if (audioElement) {
+            if (audioElement.paused) {
+                audioElement.play().catch((error) => {
+                    console.error("Error playing audio:", error);
+                });
+            } else {
+                audioElement.pause();
             }
         }
+    }
 
-        // 下载音频功能（可选）
-        function downloadAudio(fileName) {
-            const audioElement = document.createElement('a');
-            audioElement.href = fileName;
-            audioElement.download = fileName;
-            document.body.appendChild(audioElement);
-            audioElement.click();
-            document.body.removeChild(audioElement);
-        }
-    </script>
+    // 下载音频功能（可选）
+    function downloadAudio(fileName) {
+        const audioElement = document.createElement('a');
+        audioElement.href = fileName;
+        audioElement.download = fileName;
+        document.body.appendChild(audioElement);
+        audioElement.click();
+        document.body.removeChild(audioElement);
+    }
+
+    // 页面加载完成后，为所有 audio 元素统一添加 controlslist 属性
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('audio').forEach(audio => {
+            audio.setAttribute('controlslist', 'noplaybackrate nodownload');
+        });
+    });
+</script>
+
 </body>
 </html>
