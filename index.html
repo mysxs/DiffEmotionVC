@@ -757,7 +757,7 @@
   .audio-container3 {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 20px; /* 行间距保持不变 */
   }
   /* 每一行三列布局 */
   .audio-row {
@@ -772,9 +772,14 @@
     flex: 1;
     text-align: center;
   }
-  /* 可选：为每一列增加左右间距 */
+  /* 只缩小列与列之间的间距 */
   .audio-col:not(:last-child) {
-    margin-right: 5px;
+    margin-right: 5px; /* 原来是10px，现在改为5px */
+  }
+  .show-audio2 {
+    display: block;
+    width: 300px;
+    margin: 0 auto;
   }
 </style>
 
